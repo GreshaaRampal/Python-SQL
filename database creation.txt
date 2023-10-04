@@ -1,0 +1,155 @@
+-- Create a database for the Hospital Management System
+CREATE DATABASE HospitalManagementDB;
+USE HospitalManagementDB;
+
+-- Create a table to store information about doctors and physicians
+CREATE TABLE Doctors (
+    DoctorID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    Specialty VARCHAR(50),
+    ContactNumber VARCHAR(15),
+    Email VARCHAR(100)
+);
+
+-- Create a table to store information about patients
+CREATE TABLE Patients (
+    PatientID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    DateOfBirth DATE,
+    Gender ENUM('Male', 'Female', 'Other'),
+    ContactNumber VARCHAR(15),
+    Address TEXT,
+    MedicalHistory TEXT
+);
+
+-- Create a table to manage appointment scheduling
+CREATE TABLE Appointments (
+    AppointmentID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientID INT,
+    DoctorID INT,
+    AppointmentDateTime DATETIME,
+    Description TEXT,
+    CONSTRAINT FK_PatientAppointment FOREIGN KEY (PatientID) REFERENCES Patients(PatientID),
+    CONSTRAINT FK_DoctorAppointment FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID)
+);
+
+-- Create a table to manage hospital inventory
+CREATE TABLE Inventory (
+    ItemID INT PRIMARY KEY AUTO_INCREMENT,
+    ItemName VARCHAR(100),
+    Quantity INT,
+    MinimumStock INT,
+    Price DECIMAL(10, 2),
+    CONSTRAINT UNIQUE_ItemName UNIQUE(ItemName)
+);
+
+-- Create a table to store information about patient bills
+CREATE TABLE Bills (
+    BillID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientID INT,
+    BillDate DATE,
+    TotalAmount DECIMAL(10, 2),
+    Description TEXT,
+    CONSTRAINT FK_PatientBill FOREIGN KEY (PatientID) REFERENCES Patients(PatientID)
+);
+
+-- Create a table to track medicines supply
+CREATE TABLE MedicineSupply (
+    SupplyID INT PRIMARY KEY AUTO_INCREMENT,
+    ItemID INT,
+    Supplier VARCHAR(100),
+    SupplyDate DATE,
+    Quantity INT,
+    CONSTRAINT FK_ItemSupply FOREIGN KEY (ItemID) REFERENCES Inventory(ItemID)
+);
+
+-- Create a table to store room information
+CREATE TABLE Rooms (
+    RoomID INT PRIMARY KEY AUTO_INCREMENT,
+    RoomNumber INT,
+    Status ENUM('Vacant', 'Occupied'),
+    CONSTRAINT UNIQUE_RoomNumber UNIQUE(RoomNumber)
+);
+
+-- Create a table to manage hospital staff
+CREATE TABLE Staff (
+    StaffID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    Role VARCHAR(50),
+    ContactNumber VARCHAR(15),
+    Email VARCHAR(100)
+);
+
+-- Create a table to track duties of staff
+CREATE TABLE StaffDuties (
+    DutyID INT PRIMARY KEY AUTO_INCREMENT,
+    StaffID INT,
+    DutyDate DATE,
+    Description TEXT,
+    CONSTRAINT FK_StaffDuty FOREIGN KEY (StaffID) REFERENCES Staff(StaffID)
+);
+
+-- Insert data into the Doctors table
+INSERT INTO Doctors (FirstName, LastName, Specialty, ContactNumber, Email)
+VALUES
+    ('John', 'Doe', 'Cardiologist', '+1234567890', 'johndoe@example.com'),
+    ('Jane', 'Smith', 'Pediatrician', '+9876543210', 'janesmith@example.com'),
+    ('Michael', 'Johnson', 'Orthopedic Surgeon', '+1112223333', 'michael@example.com');
+
+-- Insert data into the Patients table
+INSERT INTO Patients (FirstName, LastName, DateOfBirth, Gender, ContactNumber, Address, MedicalHistory)
+VALUES
+    ('Alice', 'Brown', '1990-05-15', 'Female', '+5556667777', '123 Elm St, City, Country', 'Allergies: Pollen'),
+    ('Bob', 'Wilson', '1985-03-20', 'Male', '+4443332222', '456 Oak St, Town, Country', 'Diabetes Type 2'),
+    ('Eva', 'Clark', '2000-12-10', 'Female', '+7778889999', '789 Maple St, Village, Country', 'Asthma');
+
+-- Insert data into the Appointments table
+INSERT INTO Appointments (PatientID, DoctorID, AppointmentDateTime, Description)
+VALUES
+    (1, 1, '2023-10-05 09:00:00', 'Regular checkup'),
+    (2, 3, '2023-10-07 14:30:00', 'Fractured arm examination'),
+    (3, 2, '2023-10-10 11:15:00', 'Vaccination');
+
+-- Insert data into the Inventory table
+INSERT INTO Inventory (ItemName, Quantity, MinimumStock, Price)
+VALUES
+    ('Aspirin', 100, 20, 5.99),
+    ('Bandages', 200, 50, 2.49),
+    ('Stethoscope', 30, 10, 29.99);
+
+-- Insert data into the Bills table
+INSERT INTO Bills (PatientID, BillDate, TotalAmount, Description)
+VALUES
+    (1, '2023-10-05', 75.50, 'Checkup charges'),
+    (2, '2023-10-07', 120.25, 'X-ray and consultation'),
+    (3, '2023-10-10', 45.00, 'Vaccination cost');
+
+-- Insert data into the MedicineSupply table
+INSERT INTO MedicineSupply (ItemID, Supplier, SupplyDate, Quantity)
+VALUES
+    (1, 'Medco Supplies', '2023-10-02', 500),
+    (2, 'HealthPro Distributors', '2023-10-04', 300),
+    (3, 'Medco Supplies', '2023-10-06', 15);
+
+-- Insert data into the Rooms table
+INSERT INTO Rooms (RoomNumber, Status)
+VALUES
+    (101, 'Vacant'),
+    (102, 'Occupied'),
+    (103, 'Vacant');
+
+-- Insert data into the Staff table
+INSERT INTO Staff (FirstName, LastName, Role, ContactNumber, Email)
+VALUES
+    ('David', 'Smith', 'Nurse', '+3334445555', 'davidsmith@example.com'),
+    ('Sarah', 'Wilson', 'Receptionist', '+6665554444', 'sarah@example.com');
+
+-- Insert data into the StaffDuties table
+INSERT INTO StaffDuties (StaffID, DutyDate, Description)
+VALUES
+    (1, '2023-10-03', 'Morning shift - Ward A'),
+    (2, '2023-10-04', 'Front desk duty'),
+    (1, '2023-10-05', 'Evening shift - Ward B');
