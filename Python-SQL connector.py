@@ -1,0 +1,220 @@
+import mysql.connector
+
+# Function to establish a database connection
+def connect_to_database():
+    try:
+        db_connection = mysql.connector.connect(
+            host="host",
+            user="root",
+            password="password",
+            database="HospitalManagementDB"
+        )
+        return db_connection
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return None
+
+# Function to check if the appointment can be made
+def check_availability(cursor, doctor_id, appointment_datetime):
+    query = "SELECT * FROM Appointments WHERE DoctorID = %s AND AppointmentDateTime = %s"
+    cursor.execute(query, (doctor_id, appointment_datetime))
+    if cursor.fetchone():
+        return False
+    return True
+
+# Function to book an appointment
+def book_appointment(cursor):
+    try:
+        # Collect patient information
+        patient_first_name = input("Enter patient's first name: ")
+        patient_last_name = input("Enter patient's last name: ")
+        patient_dob = input("Enter patient's date of birth (YYYY-MM-DD): ")
+        patient_gender = input("Enter patient's gender (Male/Female/Other): ")
+        contact_number = input("Enter patient's contact number: ")
+        address = input("Enter patient's address: ")
+
+        # Insert patient information into the Patients table
+        insert_patient_query = "INSERT INTO Patients (FirstName, LastName, DateOfBirth, Gender, ContactNumber, Address) VALUES (%s, %s, %s, %s, %s, %s)"
+        cursor.execute(insert_patient_query, (patient_first_name, patient_last_name, patient_dob, patient_gender, contact_number, address))
+
+        # Collect appointment information
+        doctor_id = input("Enter doctor's ID for the appointment: ")
+        appointment_datetime = input("Enter appointment date and time (YYYY-MM-DD HH:MM:SS): ")
+
+        # Check if the appointment time is available
+        if not check_availability(cursor, doctor_id, appointment_datetime):
+            print("Doctor is already booked at that time. Please choose a different time.")
+            return
+
+        appointment_description = input("Enter appointment description: ")
+
+        # Insert appointment information into the Appointments table
+        insert_appointment_query = "INSERT INTO Appointments (PatientID, DoctorID, AppointmentDateTime, Description) VALUES (%s, %s, %s, %s)"
+        cursor.execute(insert_appointment_query, (cursor.lastrowid, doctor_id, appointment_datetime, appointment_description))
+
+        # Commit the changes to the database
+        cursor.execute("COMMIT")
+
+        print("Appointment booked successfully!")
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+
+# Function to add a doctor
+def add_doctor(cursor):
+    try:
+        # Collect doctor information
+        first_name = input("Enter doctor's first name: ")
+        last_name = input("Enter doctor's last name: ")
+        specialty = input("Enter doctor's specialty: ")
+        contact_number = input("Enter doctor's contact number: ")
+        email = input("Enter doctor's email: ")
+
+        # Insert doctor information into the Doctors table
+        insert_doctor_query = "INSERT INTO Doctors (FirstName, LastName, Specialty, ContactNumber, Email) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(insert_doctor_query, (first_name, last_name, specialty, contact_number, email))
+        cursor.execute("COMMIT")
+        print("Doctor added successfully!")
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+
+# Function to add a patient
+def add_patient(cursor):
+    try:
+        # Collect patient information
+        patient_first_name = input("Enter patient's first name: ")
+        patient_last_name = input("Enter patient's last name: ")
+        patient_dob = input("Enter patient's date of birth (YYYY-MM-DD): ")
+        patient_gender = input("Enter patient's gender (Male/Female/Other): ")
+        contact_number = input("Enter patient's contact number: ")
+        address = input("Enter patient's address: ")
+
+        # Insert patient information into the Patients table
+        insert_patient_query = "INSERT INTO Patients (FirstName, LastName, DateOfBirth, Gender, ContactNumber, Address) VALUES (%s, %s, %s, %s, %s, %s)"
+        cursor.execute(insert_patient_query, (patient_first_name, patient_last_name, patient_dob, patient_gender, contact_number, address))
+        cursor.execute("COMMIT")
+        print("Patient added successfully!")
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+
+# Function to show a list of patients
+def show_patients(cursor):
+    try:
+        query = "SELECT * FROM Patients"
+        cursor.execute(query)
+        patients = cursor.fetchall()
+
+        if not patients:
+            print("No patients found.")
+            return
+
+        print("\nList of Patients:")
+        for patient in patients:
+            print(f"Patient ID: {patient[0]}, Name: {patient[1]} {patient[2]}, DOB: {patient[3]}")
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+
+# Function to show a list of doctors
+def show_doctors(cursor):
+    try:
+        query = "SELECT * FROM Doctors"
+        cursor.execute(query)
+        doctors = cursor.fetchall()
+
+        if not doctors:
+            print("No doctors found.")
+            return
+
+        print("\nList of Doctors:")
+        for doctor in doctors:
+            print(f"Doctor ID: {doctor[0]}, Name: {doctor[1]} {doctor[2]}, Specialty: {doctor[3]}")
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+
+# Function to check the availability of rooms
+def check_room_availability(cursor):
+    try:
+        query = "SELECT * FROM Rooms WHERE Status = 'Vacant'"
+        cursor.execute(query)
+        vacant_rooms = cursor.fetchall()
+
+        if not vacant_rooms:
+            print("No vacant rooms available.")
+            return
+
+        print("\nVacant Rooms:")
+        for room in vacant_rooms:
+            print(f"Room ID: {room[0]}, Room Number: {room[1]}")
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+
+# Main menu
+def main_menu():
+    while True:
+        print("\nMain Menu:")
+        print("1. Book an Appointment")
+        print("2. Add a Doctor")
+        print("3. Add a Patient")
+        print("4. Show Patients")
+        print("5. Show Doctors")
+        print("6. Check Room Availability")
+        print("7. Exit")
+        
+        choice = input("Enter your choice (1-7): ")
+
+        if choice == "1":
+            db_connection = connect_to_database()
+            if db_connection:
+                cursor = db_connection.cursor()
+                book_appointment(cursor)
+                cursor.close()
+                db_connection.close()
+        elif choice == "2":
+            db_connection = connect_to_database()
+            if db_connection:
+                cursor = db_connection.cursor()
+                add_doctor(cursor)
+                cursor.close()
+                db_connection.close()
+        elif choice == "3":
+            db_connection = connect_to_database()
+            if db_connection:
+                cursor = db_connection.cursor()
+                add_patient(cursor)
+                cursor.close()
+                db_connection.close()
+        elif choice == "4":
+            db_connection = connect_to_database()
+            if db_connection:
+                cursor = db_connection.cursor()
+                show_patients(cursor)
+                cursor.close()
+                db_connection.close()
+        elif choice == "5":
+            db_connection = connect_to_database()
+            if db_connection:
+                cursor = db_connection.cursor()
+                show_doctors(cursor)
+                cursor.close()
+                db_connection.close()
+        elif choice == "6":
+            db_connection = connect_to_database()
+            if db_connection:
+                cursor = db_connection.cursor()
+                check_room_availability(cursor)
+                cursor.close()
+                db_connection.close()
+        elif choice == "7":
+            print("Exiting the program.")
+            break
+        else:
+            print("Invalid choice. Please select a valid option.")
+
+# Main program
+if __name__ == "__main__":
+    main_menu()
